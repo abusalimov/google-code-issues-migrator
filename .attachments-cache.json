@@ -1,0 +1,100 @@
+{
+    "https://code.google.com/p/embox/issues/detail?id=19#c6": null,
+    "https://code.google.com/p/embox/issues/detail?id=551#c1": null,
+    "https://code.google.com/p/embox/issues/detail?id=557": {
+        "files": {
+            "tofi.lua": "https://gist.githubusercontent.com/anonymous/bd48f108a009cf99bb1b/raw/d7ec37616f241822a85bfb7abf0d441988f40883/tofi.lua"
+        },
+        "url": "https://gist.github.com/bd48f108a009cf99bb1b"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=558": {
+        "files": {
+            "doit.lua": "https://gist.githubusercontent.com/anonymous/12a131edce1df9b074c7/raw/3027c6554c9f16ee2c0b474b04a5695e6a3b00ff/doit.lua"
+        },
+        "url": "https://gist.github.com/12a131edce1df9b074c7"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=564": {
+        "files": {
+            "bug_telnet_1": "https://gist.githubusercontent.com/anonymous/e3e7f655fa9f0606f0b3/raw/6c10a94d3884c8105aa056c7618959a65dd9b55e/bug_telnet_1"
+        },
+        "url": "https://gist.github.com/e3e7f655fa9f0606f0b3"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=573#c8": {
+        "files": {
+            "bug573.txt": "https://gist.githubusercontent.com/anonymous/b59d055c84e4b145161b/raw/ba668f477a06e5e814749e7fa418d35fa3018a03/bug573.txt"
+        },
+        "url": "https://gist.github.com/b59d055c84e4b145161b"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=674": {
+        "files": {
+            "cpio_unalign.patch": "https://gist.githubusercontent.com/anonymous/7094d801eaa8447f3b6b/raw/1cf08eb4f6a9ae008db4d820b94c2e6c630e2379/cpio_unalign.patch",
+            "embox.dis": "https://gist.githubusercontent.com/anonymous/7094d801eaa8447f3b6b/raw/1c0aa66da324687b9b00f9a149b67db5c3fffd53/embox.dis"
+        },
+        "url": "https://gist.github.com/7094d801eaa8447f3b6b"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=675": {
+        "files": {
+            "full-log.txt": "https://gist.githubusercontent.com/anonymous/5d52b17b8e9bfb9e230e/raw/46ce3c68f3217f9d22e2b8eb86539b9ef55f01cc/full-log.txt"
+        },
+        "url": "https://gist.github.com/5d52b17b8e9bfb9e230e"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=675#c1": {
+        "files": {
+            "issue675-2.log": "https://gist.githubusercontent.com/anonymous/31d6e2a565fa02fdb611/raw/92aadcb7c48ebcef73bb78ca5765e7f0bd2daa0c/issue675-2.log",
+            "issue675-2.patch": "https://gist.githubusercontent.com/anonymous/31d6e2a565fa02fdb611/raw/c1bcdda9e6dfcb0a7c03ab61f3a3132f731cdc60/issue675-2.patch"
+        },
+        "url": "https://gist.github.com/31d6e2a565fa02fdb611"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=675#c6": {
+        "files": {
+            "issue675-3.log": "https://gist.githubusercontent.com/anonymous/2a55532ba44aa7c44029/raw/d3f0b210c2322754391e354bc9b1887191f82adc/issue675-3.log",
+            "issue675-3.patch": "https://gist.githubusercontent.com/anonymous/2a55532ba44aa7c44029/raw/4c61f05ca63b2f1b977c2d25d4abf02393f969f1/issue675-3.patch"
+        },
+        "url": "https://gist.github.com/2a55532ba44aa7c44029"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=675#c7": {
+        "files": {
+            "issue675-4.log": "https://gist.githubusercontent.com/anonymous/beb52e03a2ad53cedff4/raw/f3ceee8c36eaf266a66c6128c3264cb6913d4da5/issue675-4.log",
+            "issue675-4.patch": "https://gist.githubusercontent.com/anonymous/beb52e03a2ad53cedff4/raw/6e4ab389675f33fd423d0dbedc76d225aa57219a/issue675-4.patch"
+        },
+        "url": "https://gist.github.com/beb52e03a2ad53cedff4"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=675#c8": {
+        "files": {
+            "issue675-5.log": "https://gist.githubusercontent.com/anonymous/af6d1bacf916f7efbbf5/raw/66ce1d0e1adcfefd0a98f7f2550e0a3acdcc01b7/issue675-5.log",
+            "issue675-5.patch": "https://gist.githubusercontent.com/anonymous/af6d1bacf916f7efbbf5/raw/34f6f4c1c7cd635e6eb87db11375c8b061d46f9f/issue675-5.patch"
+        },
+        "url": "https://gist.github.com/af6d1bacf916f7efbbf5"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=676": {
+        "files": {
+            "issue676.log": "https://gist.githubusercontent.com/anonymous/251f15a1f8a1ad3ea0fb/raw/ce5faa41cdae6f518197e8c8c9b800e0b41c02f2/issue676.log",
+            "issue676.patch": "https://gist.githubusercontent.com/anonymous/251f15a1f8a1ad3ea0fb/raw/65c1a1784dbed9e535ba837bd52330e7594eb945/issue676.patch"
+        },
+        "url": "https://gist.github.com/251f15a1f8a1ad3ea0fb"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=683#c10": {
+        "files": {
+            "smp_excpt3.patch": "https://gist.githubusercontent.com/anonymous/35c059409852166c969a/raw/b0f2f4e9248f86ef713028169f4249c57deffa01/smp_excpt3.patch"
+        },
+        "url": "https://gist.github.com/35c059409852166c969a"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=683#c9": {
+        "files": {
+            "smp_excpt.patch": "https://gist.githubusercontent.com/anonymous/e461f12ae2e454c0f3d3/raw/d1a0700a9f982d785838591c132541ec9b1c3286/smp_excpt.patch"
+        },
+        "url": "https://gist.github.com/e461f12ae2e454c0f3d3"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=687#c1": {
+        "files": {
+            "issue687.log": "https://gist.githubusercontent.com/anonymous/b4e374f76eca4e765fa1/raw/63de1d96cff19d15c3f30e4906a682fff3d19eff/issue687.log"
+        },
+        "url": "https://gist.github.com/b4e374f76eca4e765fa1"
+    },
+    "https://code.google.com/p/embox/issues/detail?id=694#c1": {
+        "files": {
+            "issue_694.patch": "https://gist.githubusercontent.com/anonymous/54bb245b38c8878b9a7c/raw/a220b348868cb72e2d1eb9d77c09df443d42732b/issue_694.patch"
+        },
+        "url": "https://gist.github.com/54bb245b38c8878b9a7c"
+    }
+}

@@ -1,14 +1,10 @@
 issues
 milestones
 
-.attachments-cache.json
-
-config.ini
 messages.txt
 messages.txt-old
 authors.json
 commits.map
-labels.ini
 
 # Python
 *.py[cod]
