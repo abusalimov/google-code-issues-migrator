@@ -20,6 +20,7 @@ from collections import defaultdict
 from collections import OrderedDict
 from ConfigParser import RawConfigParser
 from datetime import datetime
+from datetime import timedelta
 from pyquery import PyQuery as pq
 
 
@@ -125,16 +126,18 @@ def output(string='', level=0, fp=sys.stdout):
         fp.flush()
 
 
+GCODE_DATE_OFFSET = timedelta(hours=7)
+
 def parse_gcode_date(date_text):
     """ Transforms a Google Code date into a more human readable string. """
     try:
-        parsed = datetime.strptime(date_text, '%a %b %d %H:%M:%S %Y').isoformat()
-        return parsed + "Z"
+        parsed = datetime.strptime(date_text, '%a %b %d %H:%M:%S %Y')
+        return (parsed + GCODE_DATE_OFFSET).isoformat() + "Z"
     except ValueError:
         return date_text
 
 def timestamp_to_date(timestamp):
-    return datetime.fromtimestamp(long(timestamp)).isoformat() + "Z"
+    return datetime.utcfromtimestamp(long(timestamp)).isoformat() + "Z"
 
 
 def gt(dt_str):
@@ -159,7 +162,7 @@ def format_list(lst, fmt='{}', sep=', ', last_sep=None):
 
 def format_md_user(ns, kind='user'):
     if not kind.startswith('orig_'):
-        user = getattr(ns, kind, None)
+        user = getattr(ns, kind if kind != 'owner' else 'assignee', None)
         if user:
             return '@' + user  # GitHub @mention
         kind = 'orig_' + kind
@@ -270,18 +273,21 @@ def format_markdown(m, comment_nr=0):
 
     msg_id = m.extra.link
     try:
-        body = messages[msg_id].strip()
+        body = messages[msg_id]
     except KeyError:
-        body = messages[msg_id] = format_md_body(m.extra.paragraphs)
+        body = format_md_body(m.extra.paragraphs)
+        if body:
+            messages[msg_id] = body
 
     if is_issue:
         if m.extra.cc:
             footer += "Cc: {}".format(format_list(m.extra.cc, '@{}'))
-        if not m.assignee and m.extra.orig_owner:
+        if (m.assignee not in options.members or
+            not m.assignee and m.extra.orig_owner):
             if footer:
                 footer += '\n'
-            footer += ("> Originally assigned to {s_orig_owner}"
-                       .format(s_orig_owner=format_md_user(m, 'orig_owner')))
+            footer += ("> Originally assigned to {s_owner}"
+                       .format(s_owner=format_md_user(m, 'owner')))
     else:
         footer = format_md_updates(m.extra.updates)
 
@@ -928,6 +934,9 @@ def read_messages(filename):
             messages.setdefault(msg_id, '')
     messages.pop(None, None)
 
+    for msg_id, body in messages.items():
+        messages[msg_id] = body.strip()
+
     output("Read {} overrides from {}".format(len(messages), filename))
 
     return messages
@@ -942,7 +951,7 @@ def write_messages(messages, filename):
         for msg_id, body in messages.items():
             f.write('<!--  {}   {}  -->\n'
                     .format(msg_id, hashlib.md5(msg_id).hexdigest()))
-            f.write(body.strip())
+            f.write(body)
             f.write('\n\n')
 
 
@@ -956,6 +965,7 @@ skip-closed = false
 
 [github]
 repo
+members =
 absolute-links = false
 issues-start-from     = 1
 milestones-start-from = 1
@@ -1019,6 +1029,10 @@ def main():
     github.add_option('--github-repo',
             default=config.get('github', 'repo'),
             help='Used to construct URLs in issues and descriptions of Gist attachments')
+    github.add_option('--members', action='append',
+            default=[f.strip() for f in config.get('github', 'members').split(',')
+                     if f.strip()],
+            help='Repository collaborators / organization members')
     github.add_option('--absolute-links', action='store_true',
             default=config.getboolean('github', 'absolute-links'),
             help='Absolute URLs in links to issues and source files')
