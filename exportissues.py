@@ -282,8 +282,9 @@ def format_markdown(m, comment_nr=0):
     if is_issue:
         if m.extra.cc:
             footer += "Cc: {}".format(format_list(m.extra.cc, '@{}'))
-        if (m.assignee not in options.members or
-            not m.assignee and m.extra.orig_owner):
+        if (m.extra.initially_assigned and
+            (m.assignee not in options.members if m.assignee else
+             m.extra.orig_owner)):
             if footer:
                 footer += '\n'
             footer += ("> Originally assigned to {s_owner}"
@@ -642,7 +643,7 @@ def get_milestone_or_add_label(label, labels_to_add):
 def get_gcode_updates(updates_pq):
     updates = Namespace(
         orig_owner    = None,
-        owner         = None,
+        assignee      = None,
         status        = None,
         mergedinto    = None,
         new_milestone = None,
@@ -690,7 +691,7 @@ def get_gcode_updates(updates_pq):
             if value == '---':
                 value = ''
             updates.orig_owner = value
-            updates.owner = map_author(updates.orig_owner, 'owner')
+            updates.assignee = map_author(updates.orig_owner, 'owner')
 
         elif key == 'Status':
             updates.status = value
@@ -720,6 +721,9 @@ def get_gcode_comment(issue, comment_pq):
     if issue.state == 'closed' and comment.extra.updates.status in closed_labels:
         if comment.user:
             issue.closed_by = comment.user
+
+    if comment.extra.updates.orig_owner is not None:
+        issue.extra.initially_assigned = False
 
     init_message(comment, comment_pq)
 
@@ -758,6 +762,7 @@ def get_gcode_issue(summary):
         orig_owner = ''
     issue.assignee = map_author(orig_owner, 'owner')
     issue.extra.orig_owner = orig_owner
+    issue.extra.initially_assigned = bool(orig_owner)
 
     issue.extra.cc = list(uniq(non_empty(map_author(cc, 'cc')
                                          for cc in summary['Cc'].split(', '))))
@@ -876,7 +881,7 @@ def init_milestones(milestone_label_map):
         if not milestone:
             continue
 
-        milestone.state  = 'closed',  # unless there will be any open issues encountered
+        milestone.state  = 'closed'  # unless there will be any open issues encountered
 
         date_match = re.match(r'^\[([^\]]+)\]\s*', description)
         if date_match:
