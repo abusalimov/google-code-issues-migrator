@@ -201,21 +201,15 @@ def format_md_updates(u):
     elif u.orig_owner == '':
         emit("Unassigned")
 
-    if u.status in closed_labels:
-        if u.close_commit:
-            emit("Closed in **{u.close_commit}**")
-        else:
-            emit("Closed with status **{u.status}**")
-    elif u.status in open_labels:
-        emit("Reopened, status set to **{u.status}**")
-
-    if u.mergedinto:
-        emit("Merged into **#{u.mergedinto}**")
-    elif u.mergedinto == 0:
-        emit("Unmerged")
-
-    if u.merged_issue:
-        emit("Issue **#{u.merged_issue}** has been merged into this issue")
+    s_new_labels = format_list(u.new_labels, '**`{}`**')
+    s_old_labels = format_list(u.old_labels, '**`{}`**')
+    s_labels_plural = 's' * (len(u.new_labels) + len(u.old_labels) > 1)
+    if s_new_labels and s_old_labels:
+        emit("Added {s_new_labels} and removed {s_old_labels} labels")
+    elif s_new_labels:
+        emit("Added {s_new_labels} label{s_labels_plural}")
+    elif s_old_labels:
+        emit("Removed {s_old_labels} label{s_labels_plural}")
 
     if u.old_milestone and u.new_milestone:
         emit("Moved from the **{u.old_milestone}** milestone to **{u.new_milestone}**")
@@ -223,6 +217,14 @@ def format_md_updates(u):
         emit("Removed from the **{u.old_milestone}** milestone")
     elif u.new_milestone:
         emit("Added to the **{u.new_milestone}** milestone")
+
+    if u.mergedinto:
+        emit("Merged into **#{u.mergedinto}**")
+    elif u.mergedinto == 0:
+        emit("Unmerged")
+
+    if u.merged_issue:
+        emit("**#{u.merged_issue}** has been merged into this issue")
 
     s_old_blocking = format_list(u.old_blocking, '**#{}**')
     s_new_blocking = format_list(u.new_blocking, '**#{}**')
@@ -238,25 +240,14 @@ def format_md_updates(u):
     if s_new_blockedon:
         emit("Blocked on {s_new_blockedon}")
 
-    s_new_labels = format_list(u.new_labels, '**`{}`**')
-    s_old_labels = format_list(u.old_labels, '**`{}`**')
-    s_labels_plural = 's' * (len(u.new_labels) + len(u.old_labels) > 1)
-    if s_new_labels and s_old_labels:
-        emit("Added {s_new_labels} and removed {s_old_labels} labels")
-    elif s_new_labels:
-        emit("Added {s_new_labels} label{s_labels_plural}")
-    elif s_old_labels:
-        emit("Removed {s_old_labels} label{s_labels_plural}")
-
-    s_new_labels = format_list(u.new_labels, '**`{}`**')
-    s_old_labels = format_list(u.old_labels, '**`{}`**')
-    s_labels_plural = 's' * (len(u.new_labels) + len(u.old_labels) > 1)
-    if s_new_labels and s_old_labels:
-        emit("Added {s_new_labels} and removed {s_old_labels} labels")
-    elif s_new_labels:
-        emit("Added {s_new_labels} label{s_labels_plural}")
-    elif s_old_labels:
-        emit("Removed {s_old_labels} label{s_labels_plural}")
+    if u.close_commit:
+        emit("Closed in **{u.close_commit}**")
+    elif u.status and not u.state:
+        emit("Changed status to **{u.status}**")
+    elif u.state == 'closed':
+        emit("Closed with status **{u.status}**")
+    elif u.state == 'open':
+        emit("Reopened, status set to **{u.status}**")
 
     return '\n'.join('> {}'.format(line) for line in lines).format(**locals())
 
@@ -281,12 +272,12 @@ def format_markdown(m, comment_nr=0):
 
     if is_issue:
         if m.extra.cc:
-            footer += "Cc: {}".format(format_list(m.extra.cc, '@{}'))
+            if body:
+                body += '\n\n'
+            body += "Cc: {}".format(format_list(m.extra.cc, '@{}'))
         if (m.extra.initially_assigned and
             (m.assignee not in options.members if m.assignee else
              m.extra.orig_owner)):
-            if footer:
-                footer += '\n'
             footer += ("> Originally assigned to {s_owner}"
                        .format(s_owner=format_md_user(m, 'owner')))
     else:
@@ -296,7 +287,7 @@ def format_markdown(m, comment_nr=0):
         a = m.extra.attachments
         if footer:
             footer += '\n>\n'
-        footer += ("Attached {s_files} ([view{s_plural} on Gist]({a.url}))"
+        footer += ("> Attached {s_files} ([view{s_plural} on Gist]({a.url}))"
                    .format(s_files=format_list(a.files.items(),
                                                '[**`{0[0]}`**]({0[1]})'),
                            s_plural=' all' * (len(a.files) > 1), **locals()))
@@ -370,12 +361,12 @@ def add_issue_to_github(issue):
     output('Exporting issue {}'.format(issue.number), level=1)
 
     format_message(issue)
-    write_json(issue, "issues/{}.json".format(issue.number))
+    write_json(issue, "out/issues/{}.json".format(issue.number))
 
     for i, comment in enumerate(issue.extra.comments):
         format_message(comment, i+1)
     write_json([comment for comment in issue.extra.comments if comment.body],
-               "issues/{}.comments.json".format(issue.number))
+               "out/issues/{}.comments.json".format(issue.number))
 
 
 ###############################################################################
@@ -420,7 +411,7 @@ def join_paragraphs(paragraphs):
 
 def map_author(gc_uid, kind=None):
     if not gc_uid:
-        return
+        return gc_uid, None
 
     email_pat = gc_uid
     if '@' not in email_pat:
@@ -431,24 +422,31 @@ def map_author(gc_uid, kind=None):
     matches = []
     for email, gh_user in author_map.items():
         if email_re.match(email):
-            matches.append((gh_user, email))
-    if len(dict(matches)) > 1:
+            if email.endswith('@gmail.com'):
+                email = email[:-len('@gmail.com')]
+            if email.lower() == gc_uid.lower():
+                email = gc_uid  # when possible, preserve the original case
+            matches.append((email, gh_user))
+    if len(set(gh_user for email, gh_user in matches)) > 1:
         output('FIXME: multiple matches for {gc_uid}'.format(**locals()))
-        for gh_user, email in matches:
+        for email, gh_user in matches:
             output('\t{email}'.format(**locals()))
     elif matches:
-        gh_user, email = matches[0]
+        email, gh_user = matches[0]
         if gh_user:
             output("Mapping {:<10} {:>22} -> {:>30}  :  {}"
                    .format('[{}]'.format(kind), gc_uid, email, gh_user), level=3)
-            return gh_user
-        else:
+        if len(matches) == 1:
             gc_uid = email
+        if gh_user:
+            return gc_uid, gh_user
 
     output("Warning: no mapping for author {:<10} {:>22}"
            .format('[{}]'.format(kind), gc_uid), level=2)
 
     missing_authors[kind][gc_uid] += 1
+
+    return gc_uid, None
 
 
 # Format with google_project_name
@@ -645,6 +643,7 @@ def get_gcode_updates(updates_pq):
         orig_owner    = None,
         assignee      = None,
         status        = None,
+        state         = None,
         mergedinto    = None,
         new_milestone = None,
         old_milestone = None,
@@ -690,15 +689,14 @@ def get_gcode_updates(updates_pq):
         if key == 'Owner':
             if value == '---':
                 value = ''
-            updates.orig_owner = value
-            updates.assignee = map_author(updates.orig_owner, 'owner')
+            updates.orig_owner, updates.assignee = map_author(value, 'owner')
 
         elif key == 'Status':
             updates.status = value
 
         elif key == 'Mergedinto':
             ref_text = value.rpartition(':')[-1]
-            if ref_text:
+            if ref_text and not value.startswith('-'):
                 updates.mergedinto = int(ref_text) + (options.issues_start_from - 1)
             else:
                 updates.mergedinto = 0
@@ -707,16 +705,20 @@ def get_gcode_updates(updates_pq):
 
 
 def get_gcode_comment(issue, comment_pq):
-    comment = ExtraNamespace(
-        created_at = parse_gcode_date(comment_pq('.date').attr('title')),
-        updated_at = options.export_date)
+    comment = ExtraNamespace()
+
+    comment.created_at = parse_gcode_date(comment_pq('.date').attr('title'))
+    comment.updated_at = options.export_date or comment.created_at
 
     comment.extra.issue_number = issue.number
     comment.extra.link = issue.extra.link + '#' + comment_pq('a').attr('name')
     comment.extra.updates = get_gcode_updates(comment_pq('.updates .box-inner'))
 
-    comment.extra.orig_user = comment_pq('.userlink').text()
-    comment.user = map_author(comment.extra.orig_user, 'comment')
+    comment.extra.orig_user, comment.user = map_author(comment_pq('.userlink').text(), 'comment')
+
+    for state, labels in ('open', open_labels), ('closed', closed_labels):
+        if issue.extra.last_state != state and comment.extra.updates.status in labels:
+            issue.extra.last_state = comment.extra.updates.state = state
 
     if issue.state == 'closed' and comment.extra.updates.status in closed_labels:
         if comment.user:
@@ -743,28 +745,30 @@ def get_gcode_issue(summary):
         number     = int(summary['ID']) + (options.issues_start_from - 1),
         title      = summary['Summary'].strip(),
         state      = 'closed' if summary['Closed'] else 'open',
-        closed_at  = timestamp_to_date(summary['ClosedTimestamp']) if summary['Closed'] else None,
-        created_at = timestamp_to_date(summary['OpenedTimestamp']),
-        updated_at = options.export_date)
+        closed_at  = None)
+
+    if summary['Closed']:
+        issue.closed_at = timestamp_to_date(summary['ClosedTimestamp'])
+    issue.created_at = timestamp_to_date(summary['OpenedTimestamp'])
+    issue.updated_at = options.export_date or issue.created_at
 
     if not issue.title:
         issue.title = "FIXME: empty title"
         output(" FIXME: empty title")
 
     issue.extra.issue_number = issue.number
+    issue.extra.last_state = 'open'  # initially, used to track updates
 
     orig_user = summary['Reporter']
-    issue.user = map_author(orig_user, 'reporter')
-    issue.extra.orig_user = orig_user
+    issue.extra.orig_user, issue.user = map_author(orig_user, 'reporter')
 
     orig_owner = summary['Owner']
     if orig_owner == '---':
         orig_owner = ''
-    issue.assignee = map_author(orig_owner, 'owner')
-    issue.extra.orig_owner = orig_owner
+    issue.extra.orig_owner, issue.assignee = map_author(orig_owner, 'owner')
     issue.extra.initially_assigned = bool(orig_owner)
 
-    issue.extra.cc = list(uniq(non_empty(map_author(cc, 'cc')
+    issue.extra.cc = list(uniq(non_empty(map_author(cc, 'cc')[1]
                                          for cc in summary['Cc'].split(', '))))
     if issue.user in issue.extra.cc:
         issue.extra.cc.remove(issue.user)
@@ -845,7 +849,7 @@ def process_gcode_issues():
     if milestones:
         for m in milestones.values():
             output('Adding milestone {}'.format(m.number), level=1)
-            write_json(m, 'milestones/{}.json'.format(m.number))
+            write_json(m, 'out/milestones/{}.json'.format(m.number))
 
 
 def get_milestone(label, initializing=False):
@@ -1165,11 +1169,9 @@ def main():
 
                 commit_map[key] = tmp_map[value] if tmp_map else value
 
-    if not os.path.exists('issues'):
-        os.mkdir('issues')
-
-    if not os.path.exists('milestones'):
-        os.mkdir('milestones')
+    for dir_ in 'out', 'out/issues', 'out/milestones':
+        if not os.path.exists(dir_):
+            os.mkdir(dir_)
 
     if options.messages_input:
         messages = read_messages(options.messages_input)
